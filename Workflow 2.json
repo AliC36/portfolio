@@ -1,0 +1,453 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0938a7a4-704b-4a8b-aab4-4424740cf3cd",
+      "name": "When chat message received",
+      "webhookId": "dcc6168b-e4ea-455a-831c-66523f1ae196"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are a helpful assistant.\n\nThe current date is: {{ $now }}\n\n\n##Agent Instructions\n-Create an event with the google sheet create event tool\n-search an event with the google sheet search event tool\n-update an event with the google sheet update event tool. Before you do this, ALWAYS make sure to search for the event first to find the right record\n\n##Rules\n-All dates must be structured in accord to this structure: 02/20/2025. In other words it must be MM/DD/YYYY.\n-Before updating a Google sheet please find the record first with the google sheets search tool"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6188418f-f338-4cbc-97e0-bf463efc7ada",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        208
+      ],
+      "id": "264eab49-3906-47e1-82c9-ddc8755d12ca",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "w7EiEex8beZ75A2E",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        208
+      ],
+      "id": "7f531b93-1e5f-4be5-b1fc-a99779b6f6a4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "calpcabbar@gmail.com",
+          "mode": "list",
+          "cachedResultName": "calpcabbar@gmail.com"
+        },
+        "start": "={{ $fromAI(\"startTime\", \"This is the start time of the event\")} }",
+        "end": "={{ $fromAI(\"endTime\", \"This is the end time of the event\")} }",
+        "additionalFields": {
+          "summary": "={{ $fromAI(\"summary\", \"This is the summary/title of the event\")} }"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        208
+      ],
+      "id": "d7397864-8461-45b9-9af9-09f81fe38a08",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "WXkBgPLDxvvE56S4",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "calpcabbar@gmail.com",
+          "mode": "list",
+          "cachedResultName": "calpcabbar@gmail.com"
+        },
+        "timeMin": "={{ $fromAI(\"afterDate\", \"This is the time the user wants to search for events past.\")} }",
+        "timeMax": "={{ $fromAI(\"beforeDate\", \"This is the time the user wants to search for events before.\")} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        208
+      ],
+      "id": "0f6efb40-b729-46ad-97e6-61021ac5013d",
+      "name": "Get many events in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "WXkBgPLDxvvE56S4",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Xfn5XK-tcgBOioIe7LqDtOYWhvOSCnK_e6hwQbw6eHg",
+          "mode": "list",
+          "cachedResultName": "n8n test tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xfn5XK-tcgBOioIe7LqDtOYWhvOSCnK_e6hwQbw6eHg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xfn5XK-tcgBOioIe7LqDtOYWhvOSCnK_e6hwQbw6eHg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Task Name": "={{ $fromAI(\"taskName\",\" This is the Name of the task\") }}",
+            "Description": "={{ $fromAI(\"taskDescription\", \"This is the description of the task\") }}",
+            "Due Date": "={{ $fromAI(\"taskdueDate\", \"This is the due date of the task\") }}",
+            "Priority": "={{ $fromAI(\"taskPriority\", \"This is the priority of the task. Please choose the priority from the list: Low, Medium, High\") }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Task Name",
+              "displayName": "Task Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        736,
+        208
+      ],
+      "id": "3901ddfe-758b-451e-90c0-17c5c743a2fa",
+      "name": "Append row in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "k1rf1rAqP56uFizx",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Xfn5XK-tcgBOioIe7LqDtOYWhvOSCnK_e6hwQbw6eHg",
+          "mode": "list",
+          "cachedResultName": "n8n test tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xfn5XK-tcgBOioIe7LqDtOYWhvOSCnK_e6hwQbw6eHg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xfn5XK-tcgBOioIe7LqDtOYWhvOSCnK_e6hwQbw6eHg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Due Date",
+              "lookupValue": "={{ $fromAI(\"dueDate\", \"The Date the task is due on\")}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        912,
+        208
+      ],
+      "id": "cc454198-510d-4ffc-9016-ac60e508d5fc",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "k1rf1rAqP56uFizx",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1Xfn5XK-tcgBOioIe7LqDtOYWhvOSCnK_e6hwQbw6eHg",
+          "mode": "list",
+          "cachedResultName": "n8n test tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xfn5XK-tcgBOioIe7LqDtOYWhvOSCnK_e6hwQbw6eHg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xfn5XK-tcgBOioIe7LqDtOYWhvOSCnK_e6hwQbw6eHg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Task Name": "={{ $fromAI(\"taskName\",\" This is the Name of the task\") }}",
+            "Description": "={{ $fromAI(\"taskDescription\", \"This is the description of the task\") }}",
+            "Due Date": "={{ $fromAI(\"taskdueDate\", \"This is the due date of the task\") }}",
+            "Priority": "={{ $fromAI(\"taskPriority\", \"This is the priority of the task. Please choose the priority from the list: Low, Medium, High\") }}"
+          },
+          "matchingColumns": [
+            "Due Date"
+          ],
+          "schema": [
+            {
+              "id": "Task Name",
+              "displayName": "Task Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1088,
+        208
+      ],
+      "id": "c7b0c559-6c8e-494d-bb08-a9bdaadc949d",
+      "name": "Update row in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "k1rf1rAqP56uFizx",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "4e7a5ed1-7e0b-4397-929f-504c31fd75b1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c5a85ec5a9b6998104ae108a7ba1cd13db92ad4999efc74bbde4ebaa20f8e817"
+  },
+  "id": "EZCE6SaUoJORZgAyvRilA",
+  "tags": []
+}
