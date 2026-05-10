@@ -1,0 +1,281 @@
+{
+  "name": "My workflow 10",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "81c1617f-0b5a-46bf-9ba5-049922cf820b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://books.toscrape.com/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "72057ab0-b175-43d8-8788-f80d2a2487b1",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "title",
+              "cssSelector": "h3 a",
+              "returnValue": "attribute",
+              "attribute": "title",
+              "returnArray": true
+            },
+            {
+              "key": "thumbnail",
+              "cssSelector": "img.thumbnail",
+              "returnValue": "attribute",
+              "attribute": "src",
+              "returnArray": true
+            },
+            {
+              "key": "price",
+              "cssSelector": "p.price_color",
+              "returnArray": true
+            },
+            {
+              "key": "product_url",
+              "cssSelector": "h3 a",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "61faa242-2a3d-4462-8888-161b2c56a899",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = items[0].json;\n\nconst titles     = Array.isArray(data.title) ? data.title : [data.title];\nconst thumbnails = Array.isArray(data.thumbnail) ? data.thumbnail : [data.thumbnail];\nconst prices     = Array.isArray(data.price) ? data.price : [data.price];\n\n// produkt-url kann anders heißen: probiere mehrere keys\nconst rawUrl =\n  data.product_url ?? data.productUrl ?? data.url ?? data.link ?? data.productLink;\n\n// zu Array normalisieren\nlet productUrls = Array.isArray(rawUrl) ? rawUrl : [rawUrl];\n\n// Wenn nur 1 URL da ist, aber mehrere Titel: URL \"auffüllen\"\nif (productUrls.length === 1 && titles.length > 1) {\n  productUrls = Array(titles.length).fill(productUrls[0]);\n}\n\nconst count = titles.length;\n\nconst newItems = [];\nfor (let i = 0; i < count; i++) {\n  newItems.push({\n    json: {\n      title: titles[i] ?? null,\n      thumbnail: thumbnails[i] ?? thumbnails[0] ?? null,\n      price: prices[i] ?? prices[0] ?? null,\n      product_url: productUrls[i] ?? productUrls[0] ?? null,\n    },\n  });\n}\n\nreturn newItems;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "4b87b7bb-d07c-4b08-94e3-337fa170a80b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "54c8fb06-f67a-4c66-9436-496b3176eb19",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "e7b409cb-319e-4e34-9786-7113849c95e9",
+              "name": "thumbnail",
+              "value": "=https://books.toscrape.com/{{ $json.thumbnail }}",
+              "type": "string"
+            },
+            {
+              "id": "03f2bd61-bec7-4f5b-9a51-94894b46220d",
+              "name": "price",
+              "value": "={{ $json.price }}",
+              "type": "string"
+            },
+            {
+              "id": "6fcf218e-7acf-4ce3-8c4e-6fe5ddfef65b",
+              "name": "product_url",
+              "value": "=https://books.toscrape.com/{{ $json.product_url}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        0
+      ],
+      "id": "dc9c62b1-ed6e-4b8b-80e4-83b1f4ca0ea5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1fiGmC6Nl4riTR_wQLVrXDTFYttJb3b3ya3HBxRV_crk",
+          "mode": "list",
+          "cachedResultName": "scrapping",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fiGmC6Nl4riTR_wQLVrXDTFYttJb3b3ya3HBxRV_crk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Tabellenblatt1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fiGmC6Nl4riTR_wQLVrXDTFYttJb3b3ya3HBxRV_crk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $json.title }}",
+            "thumbnail": "={{ $json.thumbnail }}",
+            "price": "={{ $json.price }}",
+            "product_url": "={{ $json.product_url }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "thumbnail",
+              "displayName": "thumbnail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "product_url",
+              "displayName": "product_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "b61ee060-c5a6-44ec-9a38-17de65063b4a",
+      "name": "Append row in sheet"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "cce76dde-89a4-4ca9-b5fe-210be9b326af",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "528de30cc9c8d7962ed6a37c315b010e614af67d0fc6bbeb4f807ef510e90a3b"
+  },
+  "id": "NASbYGgorey3GZqSkpeQg",
+  "tags": []
+}
