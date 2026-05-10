@@ -1,0 +1,227 @@
+{
+  "name": "Analyze Video",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"fileData\": {\n            \"fileUri\": \"{{ $json.file.uri }}\",\n            \"mimeType\": \"{{ $json.file.mimeType }}\"\n          }\n        },\n        {\n          \"text\": \"Describe what's going on in the video in great detail. Describe the entire video.\"\n        }\n      ]\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2320,
+        896
+      ],
+      "id": "5b964b49-b2c9-411e-933c-059bab512ec8",
+      "name": "Get Analysis",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/upload/v1beta/files",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Goog-Upload-Command",
+              "value": "start, upload, finalize"
+            },
+            {
+              "name": "X-Goog-Upload-Header-Content-Length",
+              "value": "={{ $binary.Video.fileSize }}"
+            },
+            {
+              "name": "X-Goog-Upload-Header-Content-Type",
+              "value": "={{ $binary.Video.fileType }}/{{ $binary.Video.fileExtension }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "={{ $binary.Video.fileType }}/{{ $binary.Video.fileExtension }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "Video",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        896
+      ],
+      "id": "87d70205-f695-4683-a32d-0c746a62ebe7",
+      "name": "Upload File "
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2592,
+        1104
+      ],
+      "id": "efbad28a-7479-4d20-a0a9-3a36ea012459",
+      "name": "5 seconds",
+      "webhookId": "2ae152a3-3b31-497a-b285-8a19a7933c07"
+    },
+    {
+      "parameters": {
+        "formTitle": "Insert Video",
+        "formDescription": "Drop in a video for analysis.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Video",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        896
+      ],
+      "id": "2ae4b298-045c-4211-952a-499c7b513092",
+      "name": "On form submission",
+      "webhookId": "5ad4a32e-4e7b-4477-8123-2f60853d10f7"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        896
+      ],
+      "id": "198e6c72-efcc-4267-ae87-e3c21b48d3ba",
+      "name": "Wait",
+      "webhookId": "bf2e644e-b6de-463f-938b-71c42da94efe"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "268682ab-62a0-4e6f-aea0-652b30325f70",
+              "name": "Video Analysis",
+              "value": "={{ $json.candidates[0].content.parts[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2592,
+        896
+      ],
+      "id": "073fe861-4876-4a3a-98fb-8bf67c4081b8",
+      "name": "Video Analysis"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Upload File ": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Analysis": {
+      "main": [
+        [
+          {
+            "node": "Video Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "5 seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 seconds": {
+      "main": [
+        [
+          {
+            "node": "Get Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Upload File ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "17140622-1d5c-4581-88ac-50ccacc0cf99",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "528de30cc9c8d7962ed6a37c315b010e614af67d0fc6bbeb4f807ef510e90a3b"
+  },
+  "id": "vLkakaTQYJ1PAw00s6mPf",
+  "tags": []
+}
